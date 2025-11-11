@@ -1013,7 +1013,7 @@ void NetworkClient::SendRequest_LoadProfile(std::string profile_name)
 {
     NetPacketHeader reply_hdr;
 
-    InitNetPacketHeader(&reply_hdr, 0, NET_PACKET_ID_REQUEST_LOAD_PROFILE, (unsigned int)strlen(profile_name.c_str()) + 1);
+    InitNetPacketHeader(&reply_hdr, 0, NET_PACKET_ID_PROFILEMANAGER_LOAD_PROFILE, (unsigned int)strlen(profile_name.c_str()) + 1);
 
     send_in_progress.lock();
     send(client_sock, (char *)&reply_hdr, sizeof(NetPacketHeader), MSG_NOSIGNAL);
@@ -1025,7 +1025,7 @@ void NetworkClient::SendRequest_SaveProfile(std::string profile_name)
 {
     NetPacketHeader reply_hdr;
 
-    InitNetPacketHeader(&reply_hdr, 0, NET_PACKET_ID_REQUEST_SAVE_PROFILE, (unsigned int)strlen(profile_name.c_str()) + 1);
+    InitNetPacketHeader(&reply_hdr, 0, NET_PACKET_ID_PROFILEMANAGER_SAVE_PROFILE, (unsigned int)strlen(profile_name.c_str()) + 1);
 
     send_in_progress.lock();
     send(client_sock, (char *)&reply_hdr, sizeof(NetPacketHeader), MSG_NOSIGNAL);
@@ -1037,7 +1037,7 @@ void NetworkClient::SendRequest_DeleteProfile(std::string profile_name)
 {
     NetPacketHeader reply_hdr;
 
-    InitNetPacketHeader(&reply_hdr, 0, NET_PACKET_ID_REQUEST_DELETE_PROFILE, (unsigned int)strlen(profile_name.c_str()) + 1);
+    InitNetPacketHeader(&reply_hdr, 0, NET_PACKET_ID_PROFILEMANAGER_DELETE_PROFILE, (unsigned int)strlen(profile_name.c_str()) + 1);
 
     send_in_progress.lock();
     send(client_sock, (char *)&reply_hdr, sizeof(NetPacketHeader), MSG_NOSIGNAL);
@@ -1049,7 +1049,7 @@ void NetworkClient::SendRequest_GetProfileList()
 {
     NetPacketHeader reply_hdr;
 
-    InitNetPacketHeader(&reply_hdr, 0, NET_PACKET_ID_REQUEST_PROFILE_LIST, 0);
+    InitNetPacketHeader(&reply_hdr, 0, NET_PACKET_ID_PROFILEMANAGER_GET_PROFILE_LIST, 0);
 
     send_in_progress.lock();
     send(client_sock, (char *)&reply_hdr, sizeof(NetPacketHeader), MSG_NOSIGNAL);
