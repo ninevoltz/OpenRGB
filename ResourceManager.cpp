@@ -199,6 +199,7 @@ ResourceManager::ResourceManager()
     titleString.append(VERSION_STRING);
 
     server->SetName(titleString);
+    server->SetSettingsManager(settings_manager);
 
     /*-----------------------------------------------------*\
     | Enable legacy SDK workaround in server if configured  |
@@ -2103,4 +2104,14 @@ void ResourceManager::RegisterNetworkPlugin(OpenRGBNetworkPlugin plugin)
 void ResourceManager::UnregisterNetworkPlugin(std::string plugin_name)
 {
     server->UnregisterPlugin(plugin_name);
+}
+
+bool ResourceManager::IsLocalClient()
+{
+    return(auto_connection_active);
+}
+
+NetworkClient* ResourceManager::GetLocalClient()
+{
+    return(auto_connection_client);
 }

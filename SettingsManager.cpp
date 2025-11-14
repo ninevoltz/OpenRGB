@@ -13,8 +13,11 @@
 
 #include <fstream>
 #include <iostream>
-#include "SettingsManager.h"
 #include "LogManager.h"
+#include "NetworkClient.h"
+#include "ResourceManager.h"
+#include "SettingsManager.h"
+#include "StringUtils.h"
 
 SettingsManager::SettingsManager()
 {
@@ -28,31 +31,75 @@ SettingsManager::~SettingsManager()
 
 json SettingsManager::GetSettings(std::string settings_key)
 {
-    /*-----------------------------------------------------*\
-    | Check to see if the key exists in the settings store  |
-    | and return the settings associated with the key if it |
-    | exists.  We lock the mutex to protect the value from  |
-    | changing while data is being read and copy before     |
-    | unlocking.                                            |
-    \*-----------------------------------------------------*/
     json result;
 
-    mutex.lock();
-    if(settings_data.contains(settings_key))
+    if(ResourceManager::get()->IsLocalClient())
     {
-        result = settings_data[settings_key];
+        /*-------------------------------------------------*\
+        | If this is a local client, request the settings   |
+        | from the server                                   |
+        \*-------------------------------------------------*/
+        ResourceManager::get()->GetLocalClient()->SettingsManager_GetSettings(settings_key);
     }
-
-    mutex.unlock();
+    else
+    {
+        /*-------------------------------------------------*\
+        | Check to see if the key exists in the settings    |
+        | store and return the settings associated with the |
+        | key if it exists.  We lock the mutex to protect   |
+        | the value from changing while data is being read  |
+        | and copy before unlocking.                        |
+        \*-------------------------------------------------*/
+        mutex.lock();
+        if(settings_data.contains(settings_key))
+        {
+            result = settings_data[settings_key];
+        }
+        mutex.unlock();
+    }
 
     return result;
 }
 
 void SettingsManager::SetSettings(std::string settings_key, json new_settings)
 {
-    mutex.lock();
-    settings_data[settings_key] = new_settings;
-    mutex.unlock();
+    if(ResourceManager::get()->IsLocalClient())
+    {
+        /*-------------------------------------------------*\
+        | If this is a local client, request the settings   |
+        | from the server                                   |
+        \*-------------------------------------------------*/
+        nlohmann::json settings_json;
+
+        settings_json[settings_key] = new_settings;
+
+        ResourceManager::get()->GetLocalClient()->SettingsManager_SetSettings(settings_json.dump());
+    }
+    else
+    {
+        mutex.lock();
+        settings_data[settings_key] = new_settings;
+        mutex.unlock();
+    }
+}
+
+void SettingsManager::SetSettingsFromJsonString(std::string settings_json_str)
+{
+    /*-----------------------------------------------------*\
+    | Parse the JSON string                                 |
+    \*-----------------------------------------------------*/
+    nlohmann::json settings_json = nlohmann::json::parse(settings_json_str);
+
+    /*-----------------------------------------------------*\
+    | Get key/value pairs from JSON, call SetSettings for   |
+    | each key.  This use of `auto` is acceptable due to    |
+    | how the JSON library implements iterators, the type   |
+    | would change based on the library version.            |
+    \*-----------------------------------------------------*/
+    for(auto& element : settings_json.items())
+    {
+        SetSettings(element.key(), element.value());
+    }
 }
 
 void SettingsManager::LoadSettings(const filesystem::path& filename)
@@ -109,21 +156,32 @@ void SettingsManager::LoadSettings(const filesystem::path& filename)
 
 void SettingsManager::SaveSettings()
 {
-    mutex.lock();
-    std::ofstream settings_file(settings_filename, std::ios::out | std::ios::binary);
-
-    if(settings_file)
+    if(ResourceManager::get()->IsLocalClient())
     {
-        try
-        {
-            settings_file << settings_data.dump(4);
-        }
-        catch(const std::exception& e)
-        {
-            LOG_ERROR("[SettingsManager] Cannot write to file: %s", e.what());
-        }
-
-        settings_file.close();
+        /*-------------------------------------------------*\
+        | If this is a local client, save the settings on   |
+        | the server                                        |
+        \*-------------------------------------------------*/
+        ResourceManager::get()->GetLocalClient()->SettingsManager_SaveSettings();
     }
-    mutex.unlock();
+    else
+    {
+        mutex.lock();
+        std::ofstream settings_file(settings_filename, std::ios::out | std::ios::binary);
+
+        if(settings_file)
+        {
+            try
+            {
+                settings_file << settings_data.dump(4);
+            }
+            catch(const std::exception& e)
+            {
+                LOG_ERROR("[SettingsManager] Cannot write to file: %s", e.what());
+            }
+
+            settings_file.close();
+        }
+        mutex.unlock();
+    }
 }

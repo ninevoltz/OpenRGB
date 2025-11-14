@@ -89,6 +89,7 @@ enum
     \*----------------------------------------------------------------------------------------------------------*/
     NET_PACKET_ID_SETTINGSMANAGER_GET_SETTINGS      = 250,  /* Get settings for a given key in JSON format      */
     NET_PACKET_ID_SETTINGSMANAGER_SET_SETTINGS      = 251,  /* Set settings for a given key in JSON format      */
+    NET_PACKET_ID_SETTINGSMANAGER_SAVE_SETTINGS     = 252,  /* Save settings                                    */
 
     /*----------------------------------------------------------------------------------------------------------*\
     | RGBController functions                                                                                    |

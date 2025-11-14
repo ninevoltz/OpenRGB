@@ -894,7 +894,17 @@ void NetworkServer::ListenThreadFunction(NetworkClientInfo * client_info)
                     std::string settings_key;
                     settings_key.assign(data, header.pkt_size);
 
-                    //TODO: send json string of settings for the given key, or entire settings if no key given
+                    nlohmann::json settings_json = settings_manager->GetSettings(settings_key);
+                    std::string settings_json_str = settings_json.dump();
+
+                    NetPacketHeader reply_hdr;
+
+                    InitNetPacketHeader(&reply_hdr, 0, NET_PACKET_ID_SETTINGSMANAGER_GET_SETTINGS, (unsigned int)strlen(settings_json_str.c_str()) + 1);
+
+                    send_in_progress.lock();
+                    send(client_sock, (char *)&reply_hdr, sizeof(NetPacketHeader), MSG_NOSIGNAL);
+                    send(client_sock, (char *)settings_json_str.c_str(), reply_hdr.pkt_size, MSG_NOSIGNAL);
+                    send_in_progress.unlock();
                 }
                 break;
 
@@ -906,7 +916,17 @@ void NetworkServer::ListenThreadFunction(NetworkClientInfo * client_info)
 
                 if(settings_manager != NULL)
                 {
-                    //TODO: receive json string with one or more root nodes being the keys to set
+                    std::string settings_json_str;
+                    settings_json_str.assign(data, header.pkt_size);
+
+                    settings_manager->SetSettingsFromJsonString(settings_json_str);
+                }
+                break;
+
+            case NET_PACKET_ID_SETTINGSMANAGER_SAVE_SETTINGS:
+                if(settings_manager != NULL)
+                {
+                    settings_manager->SaveSettings();
                 }
                 break;
 

@@ -557,6 +557,9 @@ void NetworkClient::ListenThreadFunction()
             case NET_PACKET_ID_DEVICE_LIST_UPDATED:
                 ProcessRequest_DeviceListChanged();
                 break;
+
+            case NET_PACKET_ID_SETTINGSMANAGER_GET_SETTINGS:
+                break;
         }
 
         delete[] data;
@@ -1054,6 +1057,63 @@ void NetworkClient::SendRequest_GetProfileList()
     send_in_progress.lock();
     send(client_sock, (char *)&reply_hdr, sizeof(NetPacketHeader), MSG_NOSIGNAL);
     send_in_progress.unlock();
+}
+
+void NetworkClient::SendRequest_SettingsManager_GetSettings(std::string settings_key)
+{
+    NetPacketHeader request_hdr;
+
+    InitNetPacketHeader(&request_hdr, 0, NET_PACKET_ID_SETTINGSMANAGER_GET_SETTINGS, (unsigned int)strlen(settings_key.c_str()) + 1);
+
+    send_in_progress.lock();
+    send(client_sock, (char *)&request_hdr, sizeof(NetPacketHeader), MSG_NOSIGNAL);
+    send(client_sock, (char *)settings_key.c_str(), request_hdr.pkt_size, MSG_NOSIGNAL);
+    send_in_progress.unlock();
+}
+
+void NetworkClient::SendRequest_SettingsManager_SaveSettings()
+{
+    NetPacketHeader request_hdr;
+
+    InitNetPacketHeader(&request_hdr, 0, NET_PACKET_ID_SETTINGSMANAGER_SAVE_SETTINGS, 0);
+
+    send_in_progress.lock();
+    send(client_sock, (char *)&request_hdr, sizeof(NetPacketHeader), MSG_NOSIGNAL);
+    send_in_progress.unlock();
+}
+
+void NetworkClient::SendRequest_SettingsManager_SetSettings(std::string settings_json_str)
+{
+    NetPacketHeader request_hdr;
+
+    InitNetPacketHeader(&request_hdr, 0, NET_PACKET_ID_SETTINGSMANAGER_SET_SETTINGS, (unsigned int)strlen(settings_json_str.c_str()) + 1);
+
+    send_in_progress.lock();
+    send(client_sock, (char *)&request_hdr, sizeof(NetPacketHeader), MSG_NOSIGNAL);
+    send(client_sock, (char *)settings_json_str.c_str(), request_hdr.pkt_size, MSG_NOSIGNAL);
+    send_in_progress.unlock();
+}
+
+/*---------------------------------------------------------*\
+| SettingsManager functions                                 |
+\*---------------------------------------------------------*/
+std::string NetworkClient::SettingsManager_GetSettings(std::string settings_key)
+{
+    //waiting_on_response.lock();
+    SendRequest_SettingsManager_GetSettings(settings_key);
+
+    std::string settings_json_str;
+    return(settings_json_str);
+}
+
+void NetworkClient::SettingsManager_SaveSettings()
+{
+    SendRequest_SettingsManager_SaveSettings();
+}
+
+void NetworkClient::SettingsManager_SetSettings(std::string settings_json_str)
+{
+    SendRequest_SettingsManager_SetSettings(settings_json_str);
 }
 
 std::vector<std::string> * NetworkClient::ProcessReply_ProfileList(unsigned int data_size, char * data)
