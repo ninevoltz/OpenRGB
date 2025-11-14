@@ -1012,7 +1012,21 @@ void NetworkClient::SendRequest_RGBController_SaveMode(unsigned int dev_idx, uns
     send_in_progress.unlock();
 }
 
-void NetworkClient::SendRequest_LoadProfile(std::string profile_name)
+/*---------------------------------------------------------*\
+| ProfileManager functions                                  |
+\*---------------------------------------------------------*/
+void NetworkClient::ProfileManager_GetProfileList()
+{
+    NetPacketHeader reply_hdr;
+
+    InitNetPacketHeader(&reply_hdr, 0, NET_PACKET_ID_PROFILEMANAGER_GET_PROFILE_LIST, 0);
+
+    send_in_progress.lock();
+    send(client_sock, (char *)&reply_hdr, sizeof(NetPacketHeader), MSG_NOSIGNAL);
+    send_in_progress.unlock();
+}
+
+void NetworkClient::ProfileManager_LoadProfile(std::string profile_name)
 {
     NetPacketHeader reply_hdr;
 
@@ -1024,7 +1038,7 @@ void NetworkClient::SendRequest_LoadProfile(std::string profile_name)
     send_in_progress.unlock();
 }
 
-void NetworkClient::SendRequest_SaveProfile(std::string profile_name)
+void NetworkClient::ProfileManager_SaveProfile(std::string profile_name)
 {
     NetPacketHeader reply_hdr;
 
@@ -1036,7 +1050,7 @@ void NetworkClient::SendRequest_SaveProfile(std::string profile_name)
     send_in_progress.unlock();
 }
 
-void NetworkClient::SendRequest_DeleteProfile(std::string profile_name)
+void NetworkClient::ProfileManager_DeleteProfile(std::string profile_name)
 {
     NetPacketHeader reply_hdr;
 
@@ -1048,15 +1062,45 @@ void NetworkClient::SendRequest_DeleteProfile(std::string profile_name)
     send_in_progress.unlock();
 }
 
-void NetworkClient::SendRequest_GetProfileList()
+void NetworkClient::ProfileManager_UploadProfile(std::string profile_json_str)
 {
-    NetPacketHeader reply_hdr;
-
-    InitNetPacketHeader(&reply_hdr, 0, NET_PACKET_ID_PROFILEMANAGER_GET_PROFILE_LIST, 0);
-
+    NetPacketHeader request_hdr;
+    
+    InitNetPacketHeader(&request_hdr, 0, NET_PACKET_ID_PROFILEMANAGER_UPLOAD_PROFILE, (unsigned int)strlen(profile_json_str.c_str()) + 1);
+    
     send_in_progress.lock();
-    send(client_sock, (char *)&reply_hdr, sizeof(NetPacketHeader), MSG_NOSIGNAL);
+    send(client_sock, (char *)&request_hdr, sizeof(NetPacketHeader), MSG_NOSIGNAL);
+    send(client_sock, (char *)profile_json_str.c_str(), request_hdr.pkt_size, MSG_NOSIGNAL);
     send_in_progress.unlock();
+}
+
+std::string NetworkClient::ProfileManager_DownloadProfile(std::string profile_name)
+{
+    NetPacketHeader request_hdr;
+    
+    InitNetPacketHeader(&request_hdr, 0, NET_PACKET_ID_PROFILEMANAGER_DOWNLOAD_PROFILE, (unsigned int)strlen(profile_name.c_str()) + 1);
+    
+    send_in_progress.lock();
+    send(client_sock, (char *)&request_hdr, sizeof(NetPacketHeader), MSG_NOSIGNAL);
+    send(client_sock, (char *)profile_name.c_str(), request_hdr.pkt_size, MSG_NOSIGNAL);
+    send_in_progress.unlock();
+    
+    //TODO wait for response
+    return("");
+}
+
+std::string NetworkClient::ProfileManager_GetActiveProfile()
+{
+    NetPacketHeader request_hdr;
+    
+    InitNetPacketHeader(&request_hdr, 0, NET_PACKET_ID_PROFILEMANAGER_GET_ACTIVE_PROFILE, 0);
+    
+    send_in_progress.lock();
+    send(client_sock, (char *)&request_hdr, sizeof(NetPacketHeader), MSG_NOSIGNAL);
+    send_in_progress.unlock();
+    
+    //TODO wait for response
+    return("");
 }
 
 void NetworkClient::SendRequest_SettingsManager_GetSettings(std::string settings_key)

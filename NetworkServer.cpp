@@ -811,7 +811,7 @@ void NetworkServer::ListenThreadFunction(NetworkClientInfo * client_info)
 
                     nlohmann::json profile_json = nlohmann::json::parse(profile_json_string);
 
-                    // TODO: Send JSON data into profile manager to be saved, add name field to the profile json data
+                    profile_manager->SaveProfileFromJSON(profile_json);
                 }
                 break;
 

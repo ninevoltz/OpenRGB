@@ -60,10 +60,13 @@ public:
     /*-----------------------------------------------------*\
     | ProfileManager functions                              |
     \*-----------------------------------------------------*/
-    void                                SendRequest_GetProfileList();
-    void                                SendRequest_LoadProfile(std::string profile_name);
-    void                                SendRequest_SaveProfile(std::string profile_name);
-    void                                SendRequest_DeleteProfile(std::string profile_name);
+    void                                ProfileManager_GetProfileList();
+    void                                ProfileManager_LoadProfile(std::string profile_name);
+    void                                ProfileManager_SaveProfile(std::string profile_name);
+    void                                ProfileManager_DeleteProfile(std::string profile_name);
+    void                                ProfileManager_UploadProfile(std::string profile_json_str);
+    std::string                         ProfileManager_DownloadProfile(std::string profile_name);
+    std::string                         ProfileManager_GetActiveProfile();
 
     /*-----------------------------------------------------*\
     | SettingsManager functions                             |

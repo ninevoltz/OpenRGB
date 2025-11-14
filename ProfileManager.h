@@ -39,6 +39,7 @@ public:
     virtual nlohmann::json              ReadProfileJSON(std::string profile_name)                       = 0;
 
     virtual bool                        SaveProfile(std::string profile_name)                           = 0;
+    virtual bool                        SaveProfileFromJSON(nlohmann::json profile_json)                = 0;
     virtual bool                        SaveSizes()                                                     = 0;
 
     virtual void                        SetConfigurationDirectory(const filesystem::path& directory)    = 0;
@@ -80,6 +81,7 @@ public:
     nlohmann::json              ReadProfileJSON(std::string profile_name);
 
     bool                        SaveProfile(std::string profile_name);
+    bool                        SaveProfileFromJSON(nlohmann::json profile_json);
     bool                        SaveSizes();
 
     void                        SetConfigurationDirectory(const filesystem::path& directory);
